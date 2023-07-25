@@ -1,0 +1,122 @@
+IPFS SETUP PRIVATE Cluster
+==========================
+
+1. https://github.com/ipfs/kubo/releases
+
+git to downlad latest ipfs cmd
+
+
+2. Links
+
+https://eleks.com/research/ipfs-network-data-replication/
+
+https://www.geekdecoder.com/setting-up-a-private-ipfs-network-with-ipfs-and-ipfs-cluster/
+
+3. Download latest ipfs 
+
+https://dist.ipfs.tech/#ipfs-cluster-ctl
+
+4. ipfs init
+
+configure 
+
+5.  Creating a Private network
+
+go get -u github.com/Kubuxu/go-ipfs-swarm-key-gen/ipfs-swarm-key-gen
+
+Now run this utility on your first node to generate swarm.key under .ipfs folder:
+
+ipfs-swarm-key-gen & > ~/.ipfs/swarm.key
+
+
+4.  swarm.key 
+
+swarm.key copy on all node in .ipfs directry
+
+5. ipfs daemon
+
+run ipfs process
+
+6.  ipfs bootstrap rm --all
+
+remove all public  node link 
+
+ add private Bootstrapping IPFS nodes
+
+ipfs bootstrap add /ip4/192.168.10.1/tcp/4001/ipfs/QmQVvZEmvjhYgsyEC7NvMn8EWf131EcgTXFFJQYGSz4Y83
+
+ipfs id  # to check ids
+
+export LIBP2P_FORCE_PNET=1
+
+7. Run as aservice
+
+sudo vim /etc/systemd/system/ipfs.service
+
+
+[Unit]
+Description=IPFS Daemon
+After=syslog.target network.target remote-fs.target nss-lookup.target
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/local/bin/ipfs daemon 
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
+
+==========================================================
+
+SetUp as a Cluster
+==================
+
+1.  https://dist.ipfs.tech/#ipfs-cluster-ctl
+
+Download ipfs clusters cmd
+
+2.  Generate and set up CLUSTER_SECRET variable
+
+export CLUSTER_SECRET=$(od -vN 32 -An -tx1 /dev/urandom | tr -d ' \n')   echo $CLUSTER_SECRET
+
+3.  Init and Start cluster
+
+ipfs-cluster-service init
+
+ipfs-cluster-service daemon
+
+4. Add peer nodes
+ipfs-cluster-service daemon --bootstrap /ip4/192.168.10.1/tcp/9096/ipfs/QmZjSoXUQgJ9tutP1rXjjNYwTrRM9QPhmD9GHVjbtgWxEn
+
+5. check peers in network
+Ipfs-cluster-ctl peers ls
+
+6. Test IPFS-Cluster and data replication
+
+ipfs-cluster-ctl add myfile.txt 
+
+ipfs-cluster-ctl status CID
+
+
+7. Run IPFS-Cluster daemon as a service
+
+sudo vim /etc/systemd/system/ipfs-cluster-service.service
+
+[Unit]
+Description=IPFS Cluster Service
+After=network.target
+ 
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+Environment="CLUSTER_SECRET=e4655d589f44b2e8e916bc98db2aa9f2f49aaabbfa1ce3b392f15f4910372c8d"
+ExecStart=/usr/local/bin/ipfs-cluster-service daemon
+Restart=on-failure
+ 
+[Install]
+WantedBy=multi-user.target
+
+============================================================
